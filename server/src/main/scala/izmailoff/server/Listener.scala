@@ -19,15 +19,21 @@ class Listener extends Actor with ActorLogging {
 
   var knownClients = Set[ActorRef]()
 
+  /**
+   * Registers client actor for broadcasting purposes.
+   */
   def registerClient(client: ActorRef): Unit =
     if (!knownClients.contains(client)) {
-      info(s"Registering client $client")
+      info(s"Registering client [$client].")
       knownClients += client
     }
 
+  /**
+   * Whenever client disconnects it will be removed from the list and will not receive broadcasting events.
+   */
   def removeDeadClient(address: Address): Unit = {
     val deadClients = knownClients.filter(_.path.address == address)
-    warning(s"Removing dead clients: [\n${deadClients.mkString("\n")}\n]")
+    info(s"Removing dead clients: [\n${deadClients.mkString("\n")}\n]")
     deadClients foreach { knownClients -= _ }
     info(s"Current number of registered clients: [${knownClients.size}]")
   }
@@ -35,11 +41,12 @@ class Listener extends Actor with ActorLogging {
   /**
    * Broadcast events and statuses to all registered clients.
    */
-  def broadCastToClients(response: ResponseMessage): Unit = knownClients.foreach(_ ! response)
+  def broadCastToClients(response: ResponseMessage): Unit =
+    knownClients.foreach(_ ! response)
 
   /**
    * Client connection events are handled to update list of active broadcast clients. For this to work this
-   * actor subscribes to these connection events.
+   * actor subscribes to lifecycle events.
    */
   override def receive = {
     case Shutdown(username, request, operationMode) =>
@@ -63,6 +70,9 @@ class Listener extends Actor with ActorLogging {
 
   }
 
+  /**
+   * This service can be in one of these states.
+   */
   object ServiceStatus extends Enumeration {
     type ServiceStatus = Value
     val RUNNING, SLEEPING, STARTING, STOPPING = Value
@@ -76,10 +86,16 @@ class Listener extends Actor with ActorLogging {
   def getServiceInfo: StatusInfo = StatusInfo()
 
   // TODO: implement - perhaps stop accepting new requests and wait for existing jobs to finish.
+  /**
+   * Service will shut down whenever all jobs are finished. No new jobs will be accepted.
+   */
   def scheduleServiceShutdown() = {
     warning("System is ignoring scheduled shutdown request because it's not yet implemented.")
   }
 
+  /**
+   * Service will shutdown immediately without waiting for jobs to complete.
+   */
   def shutdownImmediate() = {
     warning("System is going down now due to requested immediate shutdown!!!")
     context.system.shutdown()

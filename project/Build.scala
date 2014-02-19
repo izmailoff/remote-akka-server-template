@@ -62,7 +62,8 @@ object MyBuild extends Build {
   lazy val commonSettings =
   settings ++
   Seq(libraryDependencies ++=
-        Dependencies.cmd)
+      Dependencies.akka ++
+      Dependencies.cmd)
 
   lazy val clientSettings =
   settings ++
@@ -89,7 +90,7 @@ object MyBuild extends Build {
   super.settings ++
   buildSettings ++
   defaultSettings ++
-  //Seq(libraryDependencies ++= Dependencies.testKit ++ Dependencies.lift ++ Dependencies.log) ++
+  Seq(libraryDependencies ++= Dependencies.testKit ++ Dependencies.log) ++
   Seq(
     shellPrompt := { s => Project.extract(s).currentProject.id + " > " }
   )

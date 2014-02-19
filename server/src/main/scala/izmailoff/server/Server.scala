@@ -5,14 +5,7 @@ import scala.util._
 import akka.actor.ActorSystem
 import akka.actor.Props
 import akka.event.Logging
-import akka.event.LogSource
-
-object CustomLogSource {
-  implicit val logSource: LogSource[AnyRef] = new LogSource[AnyRef] {
-    def genString(o: AnyRef): String = o.getClass.getName
-    override def getClazz(o: AnyRef): Class[_] = o.getClass
-  }
-}
+import izmailoff.common.log.CustomLogSource._
 
 /**
  * Actor System for managing all server actors.
@@ -21,7 +14,6 @@ class Server extends Bootable {
 
   val localActorSystemName = Configuration.conf.getString("akkaNames.local.system")
   val localActorName = Configuration.conf.getString("akkaNames.local.actor")
-  //  info("Extracted all settings successfully.")
 
   //val numWorkers = Configuration.conf.getInt("akkaWorkers.local.numWorkers")
   //  info("Configured to run [%d] workers.".format(numWorkers))
@@ -37,7 +29,6 @@ class Server extends Bootable {
       sys.exit(1)
   }
 
-  import CustomLogSource._
   val log = Logging(system, this)
   import log._
   info("Read Job server configuration\n")
@@ -50,19 +41,24 @@ class Server extends Bootable {
     case Success(listener) =>
       listener
     case Failure(e) =>
-      error(s"Failed to start listener actor. Got exception: [\n$e\n]")
+      error(s"Failed to start listener actor. Got exception: [\n$e\n].")
       info("Shutting server down.")
       sys.exit(1)
   }
-  info("Created listener actor [" + actor + "].")
+  info(s"Created listener actor [$actor].")
 
   override def startup() {
   }
 
   override def shutdown() {
-    // TODO: call markUnfinishedJobsAsFailed when shutdown completely implemented
     system.shutdown()
   }
 
-  def markUnfinishedJobsAsFailed() {}
+}
+
+/**
+ * The Main / entry point of the server application.
+ */
+object ServerRunner extends Server with App {
+  
 }
