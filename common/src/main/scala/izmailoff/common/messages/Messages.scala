@@ -58,6 +58,8 @@ object Messages {
    * See also [[ServiceMessageResult]].
    */
   trait ServiceMessage extends RequestMessage
+  
+  case class RunJob(request: Request, username: String, description: String, timeMillis: Long) extends RequestMessage
 
   /**
    * A generic service message response that represents all responses.
