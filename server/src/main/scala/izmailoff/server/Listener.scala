@@ -6,6 +6,10 @@ import akka.actor.ActorRef
 import izmailoff.common.messages.Messages._
 import izmailoff.common.messages.Messages.ServiceOperationType._
 import akka.actor.Address
+import akka.remote.DisassociatedEvent
+import akka.actor.ActorSystem
+import akka.remote.RemotingShutdownEvent
+import akka.remote.AssociationErrorEvent
 
 /**
  * A listener actor that listens to all incoming requests and registers clients.
@@ -13,35 +17,34 @@ import akka.actor.Address
 class Listener extends Actor with ActorLogging {
   import log._
 
-  override def preStart = {
-    //???
-  }
-
   var knownClients = Set[ActorRef]()
+  
+  def printKnownClients(): Unit =
+    info(s"List of ${knownClients.size} registered clients: [\n${knownClients.mkString("\n")}\n].")
 
   /**
    * Registers client actor for broadcasting purposes.
    */
-  def registerClient(client: ActorRef): Unit =
-    if (!knownClients.contains(client)) {
+  def registerClient(client: ActorRef): Unit = {
       info(s"Registering client [$client].")
       knownClients += client
+      printKnownClients()
     }
 
   /**
    * Whenever client disconnects it will be removed from the list and will not receive broadcasting events.
    */
-  def removeDeadClient(address: Address): Unit = {
+  def unregisterClient(address: Address): Unit = {
     val deadClients = knownClients.filter(_.path.address == address)
     info(s"Removing dead clients: [\n${deadClients.mkString("\n")}\n]")
     deadClients foreach { knownClients -= _ }
-    info(s"Current number of registered clients: [${knownClients.size}]")
+    printKnownClients()
   }
 
   /**
    * Broadcast events and statuses to all registered clients.
    */
-  def broadCastToClients(response: ResponseMessage): Unit =
+  def broadcastToClients(response: ResponseMessage): Unit =
     knownClients.foreach(_ ! response)
 
   /**
@@ -74,8 +77,20 @@ class Listener extends Actor with ActorLogging {
       registerClient(sender)
     //workerManager ! (request, sender)
       // ???
-    case (result: ResponseMessage, client: ActorRef) =>
-      broadCastToClients(result)
+      //broadcastToClients(new ResponseMessage)
+    case (result: ResponseMessage, client: ActorRef) => // Why `client` ?? we don't use it I think
+      broadcastToClients(result)
+    case AssociationErrorEvent(cause, localAddress, remoteAddress, inbound) =>
+      warning(s"ASSOCIATION ERROR EVENT.!!!!!!!!!!!")
+      unregisterClient(remoteAddress)
+    case DisassociatedEvent(localAddress, remoteAddress, true) =>
+      warning("DISSASSOCIATED EVENT!!!!!!!!!!!!!!!!!.")
+      unregisterClient(remoteAddress)
+    case RemotingShutdownEvent => //(cause, localAddress, remoteAddress, inbound) =>
+      warning(s"SHUTDOWN EVENT!!!!!!!!!!.")
+      //unregisterClient(remoteAddress)
+    case unknown =>
+      warning(s"Got unknown message: [$unknown].")
 
   }
 

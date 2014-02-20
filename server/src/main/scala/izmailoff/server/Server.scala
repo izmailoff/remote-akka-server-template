@@ -6,6 +6,8 @@ import akka.actor.ActorSystem
 import akka.actor.Props
 import akka.event.Logging
 import izmailoff.common.log.CustomLogSource._
+import akka.remote.RemotingLifecycleEvent
+import akka.remote.AssociationEvent
 
 /**
  * Actor System for managing all server actors.
@@ -35,22 +37,26 @@ class Server extends Bootable {
   //info(PrintHelpers.prettyConf(Configuration.conf))
   info(s"Created actor system [$system].")
 
-  val actor = Try {
+  val listener = Try {
     system.actorOf(Props[Listener], localActorName)
   } match {
-    case Success(listener) =>
-      listener
+    case Success(actor) =>
+      actor
     case Failure(e) =>
       error(s"Failed to start listener actor. Got exception: [\n$e\n].")
       info("Shutting server down.")
       sys.exit(1)
   }
-  info(s"Created listener actor [$actor].")
+  info(s"Created listener actor [$listener].")
 
-  override def startup() {
+  override def startup(): Unit = { // BUG?? - never called or is it some micro kernel specific
+    info("BOOTABLE STARTUP CALLED HOORAYY!!!.")
   }
+  system.eventStream.subscribe(listener, classOf[RemotingLifecycleEvent])
+  system.eventStream.subscribe(listener, classOf[AssociationEvent])
+  info(s"Registered remote lifecycle event listeners.")
 
-  override def shutdown() {
+  override def shutdown(): Unit = {
     system.shutdown()
   }
 
@@ -60,5 +66,5 @@ class Server extends Bootable {
  * The Main / entry point of the server application.
  */
 object ServerRunner extends Server with App {
-  
+
 }
