@@ -58,7 +58,12 @@ object Messages {
    * See also [[ServiceMessageResult]].
    */
   trait ServiceMessage extends RequestMessage
-  
+
+  /**
+   * This is the message clients will send to server to simulate work load.
+   *
+   * @timeMillis execute the job for this long. This simulates workload.
+   */
   case class RunJob(request: Request, username: String, description: String, timeMillis: Long) extends RequestMessage
 
   /**
@@ -70,6 +75,11 @@ object Messages {
    * See also [[ServiceMessage]].
    */
   trait ServiceMessageResult extends ResponseMessage
+
+  /**
+   * A counterpart of [[RunJob]] message. This message is sent once the job is finished.
+   */
+  case class JobComplete(request: Request, error: Option[Exception]) extends ResponseMessage
 
   /**
    * Get service status

@@ -11,6 +11,7 @@ import izmailoff.common.log.CustomLogSource._
 import akka.event.Logging
 import izmailoff.common.messages.Messages._
 import akka.actor.ActorLogging
+import izmailoff.common.util.Environment
 
 /**
  * Client configuration and actor management system.
@@ -121,10 +122,11 @@ class ClientActor extends Actor with ActorLogging {
  * depending on the command line flag provided.
  */
 object LimsReportsClientApp extends App {
-
+  
+  val username = Environment.currentOsUser
   val conf = new ClientCommandLineConf(args)
 
-  MessageBuilder.getMessageFromConf(Some(conf)) match {
+  MessageBuilder.getMessageFromConf(conf) match {
     case Some(message) =>
       val app = new Client
       app.sendRequest(message)

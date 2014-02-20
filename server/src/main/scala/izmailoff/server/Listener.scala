@@ -62,9 +62,18 @@ class Listener extends Actor with ActorLogging {
       val status = StatusRunning(request, getServiceInfo) // FIXME: hardcoded
       info(s"Got [$status] request message, replying with [$status].")
       sender ! status
+    case job @ RunJob(request, username, description, millis) =>
+      // FIXME: temp sleep for testing
+      registerClient(sender)
+      info(s"STARTED processing [$job].")
+      Thread.sleep(millis)
+      info(s"FINISHED processing [$job].")
+      val error = Some(new Exception("EVERYTHING FAILED :)."))
+      sender ! JobComplete(request, error)
     case request: RequestMessage =>
       registerClient(sender)
     //workerManager ! (request, sender)
+      // ???
     case (result: ResponseMessage, client: ActorRef) =>
       broadCastToClients(result)
 

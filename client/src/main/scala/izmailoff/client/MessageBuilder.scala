@@ -3,6 +3,8 @@ package ca.pgx.client
 import java.util.UUID
 import java.net.URI
 import izmailoff.common.messages.Messages._
+import izmailoff.common.messages.Messages.ServiceOperationType._
+import LimsReportsClientApp.username
 
 /**
  * Builds messages from command line arguments that later will be sent to the Akka server.
@@ -12,7 +14,7 @@ object MessageBuilder {
   /**
    * Generates a Request with a random id.
    */
-  def makeRequest = Request(UUID.randomUUID())
+  def makeRequest = Request(UUID.randomUUID)
 
   /**
    * transforms a List of requestIds to a list of Request messages
@@ -23,61 +25,53 @@ object MessageBuilder {
   }
 
   /**
-   * returns the appropriate RequestMessage based on a [[ClientCommandLineConf]] object.
+   * Returns the appropriate RequestMessage to be sent to Akka server based on command line args provided.
    */
-  def getMessageFromConf(configuration: Option[ClientCommandLineConf]): Option[RequestMessage] =
-    configuration match {
-      case Some(conf) =>
-        if (conf.status.isSupplied) {
-          checkSystemStatusMessage()
-        } else if (conf.subcommands.contains(conf.shutdown)) {
-          shutdownMessage(conf.shutdown.abort.isSupplied)
-        } else if (conf.subcommands.contains(conf.restart)) {
-          restartMessage(conf.restart.abort.isSupplied)
-        } else if (conf.sleep.isSupplied) {
-          sleepMessage()
-        } else if (conf.wakeup.isSupplied) {
-          wakeupMessage()
-        } else {
-          None
-        }
-      case _ => None
-    }
+  def getMessageFromConf(conf: ClientCommandLineConf): Option[RequestMessage] =
+    if (conf.subcommands.contains(conf.status)) checkSystemStatusMessage
+    else if (conf.subcommands.contains(conf.shutdown)) shutdownMessage(conf.shutdown.abort())
+    else if (conf.subcommands.contains(conf.restart)) restartMessage(conf.restart.abort())
+    else if (conf.subcommands.contains(conf.sleep)) sleepMessage
+    else if (conf.subcommands.contains(conf.wakeup)) wakeupMessage
+    else if (conf.subcommands.contains(conf.job)) runJobMessage(conf.job.description(),
+      if (conf.job.executionTime.isSupplied) conf.job.executionTime() else 0)
+    else None
 
   /**
    * Constructs a message of type Status
    */
-  def checkSystemStatusMessage() = {
-    Some(Status("shell", makeRequest))
-  }
+  def checkSystemStatusMessage =
+    Some(Status(username, makeRequest))
 
   /**
    * Constructs a Shutdown message
    */
-  def shutdownMessage(abort: Boolean) = {
-    Some(Shutdown("shell", makeRequest, if (abort) ServiceOperationType.ABORT else ServiceOperationType.NORMAL))
-  }
+  def shutdownMessage(abort: Boolean) =
+    Some(Shutdown(username, makeRequest, if (abort) ABORT else NORMAL))
 
   /**
    * Constructs a Restart message
    */
-  def restartMessage(abort: Boolean) = {
-    Some(Restart("shell", makeRequest, if (abort) ServiceOperationType.ABORT else ServiceOperationType.NORMAL))
-  }
+  def restartMessage(abort: Boolean) =
+    Some(Restart(username, makeRequest, if (abort) ABORT else NORMAL))
 
   /**
    * Constructs a Sleep message
    */
-  def sleepMessage() = {
-    Some(Sleep("shell", makeRequest))
-  }
+  def sleepMessage =
+    Some(Sleep(username, makeRequest))
 
   /**
    * Constructs a Wakeup message
    */
-  def wakeupMessage() = {
-    Some(Wakeup("shell", makeRequest))
-  }
+  def wakeupMessage =
+    Some(Wakeup(username, makeRequest))
+
+  /**
+   * Request server to run a simulated job.
+   */
+  def runJobMessage(description: String, millis: Long) =
+    Some(RunJob(makeRequest, username, description, millis))
 }
 
 
