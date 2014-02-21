@@ -1,6 +1,5 @@
 package ca.pgx.client
 
-import akka.kernel.Bootable
 import scala.util.Random
 import com.typesafe.config.ConfigFactory
 import akka.actor.{ ActorRef, Props, Actor, ActorSystem }
@@ -12,11 +11,12 @@ import akka.event.Logging
 import izmailoff.common.messages.Messages._
 import akka.actor.ActorLogging
 import izmailoff.common.util.Environment
+import akka.remote.AssociationEvent
 
 /**
  * Client configuration and actor management system.
  */
-class Client extends Bootable {
+class Client {
   /**
    * Returns unique local actor or system name with base name from conf.
    *
@@ -66,12 +66,9 @@ class Client extends Bootable {
     info("Request has been sent.")
   }
 
-  def startup() {
-  }
+  system.eventStream.subscribe(clientCommunicator, classOf[AssociationEvent])
+  info(s"Registered remote lifecycle event listeners.")
 
-  def shutdown() {
-    system.shutdown()
-  }
 }
 
 /**
@@ -132,6 +129,7 @@ object LimsReportsClientApp extends App {
       for {
         i <- 1 to conf.job.times()
         _ = app.log.info(s"MESSAGE# $i")
+        _ = Thread.sleep(5000)
         _ = app.sendRequest(message)
       } ()
       app.clientCommunicator ! "EXIT"

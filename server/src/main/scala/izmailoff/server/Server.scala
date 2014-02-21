@@ -1,6 +1,5 @@
 package izmailoff.server
 
-import akka.kernel.Bootable
 import scala.util._
 import akka.actor.ActorSystem
 import akka.actor.Props
@@ -12,7 +11,7 @@ import akka.remote.AssociationEvent
 /**
  * Actor System for managing all server actors.
  */
-class Server extends Bootable {
+class Server {
 
   val localActorSystemName = Configuration.conf.getString("akkaNames.local.system")
   val localActorName = Configuration.conf.getString("akkaNames.local.actor")
@@ -49,16 +48,8 @@ class Server extends Bootable {
   }
   info(s"Created listener actor [$listener].")
 
-  override def startup(): Unit = { // BUG?? - never called or is it some micro kernel specific
-    info("BOOTABLE STARTUP CALLED HOORAYY!!!.")
-  }
-  //system.eventStream.subscribe(listener, classOf[RemotingLifecycleEvent])
   system.eventStream.subscribe(listener, classOf[AssociationEvent])
   info(s"Registered remote lifecycle event listeners.")
-
-  override def shutdown(): Unit = {
-    system.shutdown()
-  }
 
 }
 
