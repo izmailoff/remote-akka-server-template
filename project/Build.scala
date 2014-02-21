@@ -140,12 +140,13 @@ object Dependencies {
     // Compile
 
     // AKKA
+    val akkaVersion = "2.3.0-RC4"
     val akkaSystem = Seq(
-      "com.typesafe.akka" % "akka-actor_2.10" % "2.2.3",
-      "com.typesafe.akka" % "akka-remote_2.10" % "2.2.3",
-      "com.typesafe.akka" % "akka-kernel_2.10" % "2.2.3",
-      "com.typesafe.akka" % "akka-slf4j_2.10" % "2.2.3",
-      "com.typesafe.akka" % "akka-testkit_2.10" % "2.2.3" % "test"
+      "com.typesafe.akka" % "akka-actor_2.10" % akkaVersion,
+      "com.typesafe.akka" % "akka-remote_2.10" % akkaVersion,
+      "com.typesafe.akka" % "akka-kernel_2.10" % akkaVersion,
+      "com.typesafe.akka" % "akka-slf4j_2.10" % akkaVersion,
+      "com.typesafe.akka" % "akka-testkit_2.10" % akkaVersion % "test"
     )
 
     // LOG

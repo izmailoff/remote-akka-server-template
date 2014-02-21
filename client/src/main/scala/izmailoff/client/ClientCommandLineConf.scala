@@ -1,4 +1,4 @@
-package ca.pgx.client
+package izmailoff.client
 
 import java.util.UUID
 import org.rogach.scallop._
@@ -10,11 +10,11 @@ class ClientCommandLineConf(args: Array[String], commandName: String = "")
   extends ScallopConf(args: Array[String], commandName: String) {
 
   val shutdown = new Subcommand("shutdown") {
-    val abort = opt[Boolean]("abort", 's', "shutdown abort to force immediate shutdown.", required = false)
+    val abort = opt[Boolean]("abort", 'a', "shutdown abort to force immediate shutdown.", required = false) // FIXME: throws for some reason
   }
 
   val restart = new Subcommand("restart") {
-    val abort = opt[Boolean]("abort", 'r', descr = "restart abort to force immediate restart.", required = false)
+    val abort = opt[Boolean]("abort", 'a', descr = "restart abort to force immediate restart.", required = false)
   }
 
   val sleep = new Subcommand("sleep")

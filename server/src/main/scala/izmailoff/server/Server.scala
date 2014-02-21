@@ -32,8 +32,6 @@ class Server {
 
   val log = Logging(system, this)
   import log._
-  info("Read Job server configuration\n")
-  //info(PrintHelpers.prettyConf(Configuration.conf))
   info(s"Created actor system [$system].")
 
   val listener = Try {

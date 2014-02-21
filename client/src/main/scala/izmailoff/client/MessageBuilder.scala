@@ -1,10 +1,10 @@
-package ca.pgx.client
+package izmailoff.client
 
 import java.util.UUID
 import java.net.URI
 import izmailoff.common.messages.Messages._
 import izmailoff.common.messages.Messages.ServiceOperationType._
-import LimsReportsClientApp.username
+import ClientRunner.username
 
 /**
  * Builds messages from command line arguments that later will be sent to the Akka server.
@@ -73,5 +73,3 @@ object MessageBuilder {
   def runJobMessage(description: String, millis: Long) =
     Some(RunJob(makeRequest, username, description, millis))
 }
-
-

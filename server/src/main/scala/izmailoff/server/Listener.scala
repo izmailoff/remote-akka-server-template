@@ -18,19 +18,18 @@ import akka.actor.DeadLetter
  * A listener actor that listens to all incoming requests and registers clients.
  */
 class Listener extends Actor with ActorLogging {
-  import log._
 
   var knownClients = Set[ActorRef]()
 
   def printKnownClients(): Unit =
-    info(s"List of ${knownClients.size} registered clients: [\n${knownClients.mkString("\n")}\n].")
+    log.info(s"List of ${knownClients.size} registered clients: [\n${knownClients.mkString("\n")}\n].")
 
   /**
    * Registers client actor for broadcasting purposes.
    */
   def registerClient(client: ActorRef): Unit =
-    if (client != context.system.deadLetters) {
-      info(s"Registering client [$client].")
+    if (client != context.system.deadLetters && ! knownClients.contains(client)) {
+      log.info(s"Registering client [$client].")
       knownClients += client
       printKnownClients()
     }
@@ -41,9 +40,11 @@ class Listener extends Actor with ActorLogging {
   def unregisterClient(address: Address): Unit =
     if (address != context.system.deadLetters.path.address) {
       val deadClients = knownClients.filter(_.path.address == address)
-      info(s"Removing dead clients: [\n${deadClients.mkString("\n")}\n]")
-      deadClients foreach { knownClients -= _ }
-      printKnownClients()
+      if (deadClients.size > 0) {
+        log.info(s"Removing dead client: [$address].")
+        deadClients foreach { knownClients -= _ }
+        printKnownClients()
+      }
     }
 
   /**
@@ -58,34 +59,38 @@ class Listener extends Actor with ActorLogging {
    */
   override def receive = {
     case Shutdown(username, request, operationMode) =>
-      warning(s"User [$username] requested service SHUTDOWN with [$operationMode] mode! Request: [$request].")
-      sender ! ShutdownAccepted(request, operationMode)
-      info("Replied to sender to confirm SHUTDOWN operation.")
+      registerClient(sender)
+      log.warning(s"User [$username] requested service SHUTDOWN with [$operationMode] mode! Request: [$request].")
+      broadcastToClients(ShutdownAccepted(request, operationMode))
+      //sender ! ShutdownAccepted(request, operationMode)
+      log.info("Replied to sender to confirm SHUTDOWN operation.")
       operationMode match {
         case NORMAL => scheduleServiceShutdown()
         case ABORT => shutdownImmediate()
       }
     case status @ Status(username: String, request: Request) =>
+      registerClient(sender)
       val currentStatus = getServiceStatus
       val status = StatusRunning(request, getServiceInfo) // FIXME: hardcoded
-      info(s"Got [$status] request message, replying with [$status].")
+      log.info(s"Got [$status] request message, replying with [$status].")
+      // No need to broadcast this message: broadcastToClients(status)
       sender ! status
     case job @ RunJob(request, username, description, millis) =>
-      // FIXME: temp sleep for testing
-      info(s"STARTED processing [$job].")
       registerClient(sender)
+      log.info(s"STARTED processing [$job].")
       Thread.sleep(millis)
-      info(s"FINISHED processing [$job].")
+      log.info(s"FINISHED processing [$job].")
       val error = Some(new Exception("EVERYTHING FAILED :)."))
-      sender ! JobComplete(request, error)
-    case request: RequestMessage =>
-      info(s"GOT [$request].")
+      broadcastToClients(JobComplete(request, error))
+//      sender ! JobComplete(request, error)
+    case request: RequestMessage => // TODO: implement all cases
       registerClient(sender)
+      log.info(s"GOT [$request].")
     //workerManager ! (request, sender)
     //broadcastToClients(new ResponseMessage)
     //    case (result: ResponseMessage, client: ActorRef) => // Why `client` ?? we don't use it I think
     //      broadcastToClients(result)
-    case d @ DisassociatedEvent(localAddress, remoteAddress, _) =>
+    case DisassociatedEvent(localAddress, remoteAddress, _) =>
       unregisterClient(remoteAddress)
 
   }
@@ -110,14 +115,14 @@ class Listener extends Actor with ActorLogging {
    * Service will shut down whenever all jobs are finished. No new jobs will be accepted.
    */
   def scheduleServiceShutdown() = {
-    warning("System is ignoring scheduled shutdown request because it's not yet implemented.")
+    log.warning("System is ignoring scheduled shutdown request because it's not yet implemented.")
   }
 
   /**
    * Service will shutdown immediately without waiting for jobs to complete.
    */
   def shutdownImmediate() = {
-    warning("System is going down now due to requested immediate shutdown!!!")
+    log.warning("System is going down now due to requested immediate shutdown!!!")
     context.system.shutdown()
     //shutdown() // or use cake pattern
   }
