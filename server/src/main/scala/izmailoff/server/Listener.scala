@@ -10,6 +10,9 @@ import akka.remote.DisassociatedEvent
 import akka.actor.ActorSystem
 import akka.remote.RemotingShutdownEvent
 import akka.remote.AssociationErrorEvent
+import akka.remote.AssociatedEvent
+import akka.remote.AssociationEvent
+import akka.actor.DeadLetter
 
 /**
  * A listener actor that listens to all incoming requests and registers clients.
@@ -18,14 +21,15 @@ class Listener extends Actor with ActorLogging {
   import log._
 
   var knownClients = Set[ActorRef]()
-  
+
   def printKnownClients(): Unit =
     info(s"List of ${knownClients.size} registered clients: [\n${knownClients.mkString("\n")}\n].")
 
   /**
    * Registers client actor for broadcasting purposes.
    */
-  def registerClient(client: ActorRef): Unit = {
+  def registerClient(client: ActorRef): Unit =
+    if (client != context.system.deadLetters) {
       info(s"Registering client [$client].")
       knownClients += client
       printKnownClients()
@@ -34,12 +38,13 @@ class Listener extends Actor with ActorLogging {
   /**
    * Whenever client disconnects it will be removed from the list and will not receive broadcasting events.
    */
-  def unregisterClient(address: Address): Unit = {
-    val deadClients = knownClients.filter(_.path.address == address)
-    info(s"Removing dead clients: [\n${deadClients.mkString("\n")}\n]")
-    deadClients foreach { knownClients -= _ }
-    printKnownClients()
-  }
+  def unregisterClient(address: Address): Unit =
+    if (address != context.system.deadLetters.path.address) {
+      val deadClients = knownClients.filter(_.path.address == address)
+      info(s"Removing dead clients: [\n${deadClients.mkString("\n")}\n]")
+      deadClients foreach { knownClients -= _ }
+      printKnownClients()
+    }
 
   /**
    * Broadcast events and statuses to all registered clients.
@@ -67,30 +72,21 @@ class Listener extends Actor with ActorLogging {
       sender ! status
     case job @ RunJob(request, username, description, millis) =>
       // FIXME: temp sleep for testing
-      registerClient(sender)
       info(s"STARTED processing [$job].")
+      registerClient(sender)
       Thread.sleep(millis)
       info(s"FINISHED processing [$job].")
       val error = Some(new Exception("EVERYTHING FAILED :)."))
       sender ! JobComplete(request, error)
     case request: RequestMessage =>
+      info(s"GOT [$request].")
       registerClient(sender)
     //workerManager ! (request, sender)
-      // ???
-      //broadcastToClients(new ResponseMessage)
-    case (result: ResponseMessage, client: ActorRef) => // Why `client` ?? we don't use it I think
-      broadcastToClients(result)
-    case AssociationErrorEvent(cause, localAddress, remoteAddress, inbound) =>
-      warning(s"ASSOCIATION ERROR EVENT.!!!!!!!!!!!")
+    //broadcastToClients(new ResponseMessage)
+    //    case (result: ResponseMessage, client: ActorRef) => // Why `client` ?? we don't use it I think
+    //      broadcastToClients(result)
+    case d @ DisassociatedEvent(localAddress, remoteAddress, _) =>
       unregisterClient(remoteAddress)
-    case DisassociatedEvent(localAddress, remoteAddress, true) =>
-      warning("DISSASSOCIATED EVENT!!!!!!!!!!!!!!!!!.")
-      unregisterClient(remoteAddress)
-    case RemotingShutdownEvent => //(cause, localAddress, remoteAddress, inbound) =>
-      warning(s"SHUTDOWN EVENT!!!!!!!!!!.")
-      //unregisterClient(remoteAddress)
-    case unknown =>
-      warning(s"Got unknown message: [$unknown].")
 
   }
 

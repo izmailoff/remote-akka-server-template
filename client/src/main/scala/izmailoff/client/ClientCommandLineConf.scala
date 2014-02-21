@@ -10,11 +10,11 @@ class ClientCommandLineConf(args: Array[String], commandName: String = "")
   extends ScallopConf(args: Array[String], commandName: String) {
 
   val shutdown = new Subcommand("shutdown") {
-    val abort = opt[Boolean]("abort", required = false, descr = "shutdown abort to force immediate shutdown.")
+    val abort = opt[Boolean]("abort", 's', "shutdown abort to force immediate shutdown.", required = false)
   }
 
   val restart = new Subcommand("restart") {
-    val abort = opt[Boolean]("abort", required = false, descr = "restart abort to force immediate restart.")
+    val abort = opt[Boolean]("abort", 'r', descr = "restart abort to force immediate restart.", required = false)
   }
 
   val sleep = new Subcommand("sleep")
@@ -23,9 +23,11 @@ class ClientCommandLineConf(args: Array[String], commandName: String = "")
 
   val status = new Subcommand("status")
 
+  //(name, short, descr, default, validate, required, argName, hidden, noshort)
   val job = new Subcommand("job") {
-    val description = opt[String]("description", required = true, descr = "Job name/description - makes it easy to find in logs.")
-    val executionTime = opt[Long]("millis", required = false, descr = "time in millis to run this job (simul).")
+    val description = opt[String]("description", 'd', "Job name/description - makes it easy to find in logs.", required = true)
+    val times = opt[Int]("times", 't', "N times to send request.", Some(1), required = false)
+    val executionTime = opt[Long]("millis", 'm', "time in millis to run this job (simul).", Some(0), required = false)
   }
 
   //  val verbose = opt[Boolean]("verbose", descr = "use more verbose output")

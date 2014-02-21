@@ -52,7 +52,7 @@ class Server extends Bootable {
   override def startup(): Unit = { // BUG?? - never called or is it some micro kernel specific
     info("BOOTABLE STARTUP CALLED HOORAYY!!!.")
   }
-  system.eventStream.subscribe(listener, classOf[RemotingLifecycleEvent])
+  //system.eventStream.subscribe(listener, classOf[RemotingLifecycleEvent])
   system.eventStream.subscribe(listener, classOf[AssociationEvent])
   info(s"Registered remote lifecycle event listeners.")
 

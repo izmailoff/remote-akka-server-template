@@ -1,7 +1,7 @@
 <configuration>
-	<!-- <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender"> 
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender"> 
 		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"> <pattern>%d{HH:mm:ss.SSS} 
-		[%thread] %-5level %logger{36} - %msg%n</pattern> </encoder> </appender> -->
+		[%thread] %-5level %logger{36} - %msg%n</pattern> </encoder> </appender>
 	<appender name="ROLLING"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<file>server.log
@@ -58,6 +58,7 @@ contains run.mode=production or run.mode=staging. This matches Lift run modes.
 	<logger name="izmailoff" level="info" />
 	<root level="info">
 		<appender-ref ref="ROLLING" />
+		<appender-ref ref="STDOUT" />
 		<!--<appender-ref ref="EMAIL" />-->
 	</root>
 </configuration>

@@ -98,16 +98,16 @@ class ClientActor extends Actor with ActorLogging {
         info("Client waiting for response...")
       } else {
         info("Client not waiting for response.")
-        exitGracefully()
+        //exitGracefully()
       }
     //    case intermediateResult: IntermediateResult =>
     //      info(s"Got\n[$intermediateResult].\nWaiting for more...")
     case ShutdownAccepted(request, operationMode) =>
       info(s"Server will be shut down with [$operationMode] option as you requested: [$request].")
-      exitGracefully()
+    //exitGracefully()
     case result: ResponseMessage =>
       info(s"Got reply from server: [$result].")
-      exitGracefully()
+    //exitGracefully()
     case unknown =>
       error(s"Unknown response: [$unknown].")
       exitGracefully()
@@ -122,14 +122,19 @@ class ClientActor extends Actor with ActorLogging {
  * depending on the command line flag provided.
  */
 object LimsReportsClientApp extends App {
-  
+
   val username = Environment.currentOsUser
   val conf = new ClientCommandLineConf(args)
 
   MessageBuilder.getMessageFromConf(conf) match {
     case Some(message) =>
       val app = new Client
-      app.sendRequest(message)
+      for {
+        i <- 1 to conf.job.times()
+        _ = app.log.info(s"MESSAGE# $i")
+        _ = app.sendRequest(message)
+      } ()
+      app.clientCommunicator ! "EXIT"
     case _ =>
       sys.error("Incorrect arguments provided.")
       conf.printHelp
