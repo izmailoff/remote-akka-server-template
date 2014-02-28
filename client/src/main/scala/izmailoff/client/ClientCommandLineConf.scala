@@ -1,6 +1,5 @@
 package izmailoff.client
 
-import java.util.UUID
 import org.rogach.scallop._
 
 /**

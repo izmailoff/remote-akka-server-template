@@ -7,12 +7,6 @@ import izmailoff.common.messages.Messages._
 import izmailoff.common.messages.Messages.ServiceOperationType._
 import akka.actor.Address
 import akka.remote.DisassociatedEvent
-import akka.actor.ActorSystem
-import akka.remote.RemotingShutdownEvent
-import akka.remote.AssociationErrorEvent
-import akka.remote.AssociatedEvent
-import akka.remote.AssociationEvent
-import akka.actor.DeadLetter
 
 /**
  * A listener actor that listens to all incoming requests and registers clients.

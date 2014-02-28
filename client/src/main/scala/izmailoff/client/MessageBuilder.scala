@@ -1,7 +1,6 @@
 package izmailoff.client
 
 import java.util.UUID
-import java.net.URI
 import izmailoff.common.messages.Messages._
 import izmailoff.common.messages.Messages.ServiceOperationType._
 import ClientRunner.username

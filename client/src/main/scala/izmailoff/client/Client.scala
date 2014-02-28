@@ -1,18 +1,11 @@
 package izmailoff.client
 
-import scala.util.Random
-import com.typesafe.config.ConfigFactory
-import akka.actor.{ ActorRef, Props, Actor, ActorSystem }
+import akka.actor.{ Props, ActorSystem }
 import java.util.UUID
-import java.net.URI
-import akka.actor.ActorSelection
 import izmailoff.common.log.CustomLogSource._
 import akka.event.Logging
 import izmailoff.common.messages.Messages._
-import akka.actor.ActorLogging
-import izmailoff.common.util.Environment
 import akka.remote.AssociationEvent
-import akka.remote.DisassociatedEvent
 
 /**
  * Client configuration and actor management system.
