@@ -5,7 +5,6 @@ import akka.actor.ActorSystem
 import akka.actor.Props
 import akka.event.Logging
 import izmailoff.common.log.CustomLogSource._
-import akka.remote.RemotingLifecycleEvent
 import akka.remote.AssociationEvent
 
 /**
