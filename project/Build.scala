@@ -140,7 +140,7 @@ object Dependencies {
     // Compile
 
     // AKKA
-    val akkaVersion = "2.3.0-RC4"
+    val akkaVersion = "2.3.0"
     val akkaSystem = Seq(
       "com.typesafe.akka" % "akka-actor_2.10" % akkaVersion,
       "com.typesafe.akka" % "akka-remote_2.10" % akkaVersion,
