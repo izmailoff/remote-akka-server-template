@@ -90,7 +90,7 @@ class Listener extends Actor with ActorLogging {
     //broadcastToClients(new ResponseMessage)
     //    case (result: ResponseMessage, client: ActorRef) => // Why `client` ?? we don't use it I think
     //      broadcastToClients(result)
-    case DisassociatedEvent(localAddress, remoteAddress, _) =>
+    case DisassociatedEvent(_, remoteAddress, _) =>
       unregisterClient(remoteAddress)
 
   }
