@@ -81,7 +81,7 @@ object MyBuild extends Build {
   lazy val buildSettings = Seq(
     organization := "izmailoff",
     version      := "0.1",
-    scalaVersion := System.getProperty("scalaVersion", "2.10.4"),
+    scalaVersion := System.getProperty("scalaVersion", "2.11.0"),
     exportJars := true,
     EclipseKeys.withSource := true
   )
