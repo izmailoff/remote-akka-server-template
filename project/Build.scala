@@ -81,7 +81,7 @@ object MyBuild extends Build {
   lazy val buildSettings = Seq(
     organization := "izmailoff",
     version      := "0.1",
-    scalaVersion := System.getProperty("scalaVersion", "2.10.3"),
+    scalaVersion := System.getProperty("scalaVersion", "2.10.4"),
     exportJars := true,
     EclipseKeys.withSource := true
   )
@@ -163,11 +163,10 @@ object Dependencies {
       val junit        = "junit"                       % "junit"                        % "4.11"             % "test" // Common Public License 1.0
 //      val logback      = "ch.qos.logback"              % "logback-classic"              % "1.0.7"            % "test" // EPL 1.0 / LGPL 2.1
       val mockito      = "org.mockito"                 % "mockito-all"                  % "1.8.1"            % "test" // MIT
-      // changing the scalatest dependency must be reflected in akka-docs/rst/dev/multi-jvm-testing.rst
-      val scalatest    = "org.scalatest"              %% "scalatest"                    % "2.0.M6-SNAP5"      % "test" // ApacheV2
+      val scalatest    = "org.scalatest"              %% "scalatest"                    % "2.1.3"      % "test" // ApacheV2
 //      val scalacheck   = "org.scalacheck"             %% "scalacheck"                   % "1.10.0"           % "test" // New BSD
       val log4j        = "log4j"                       % "log4j"                        % "1.2.14"           % "test" // ApacheV2
-      val specs2 = "org.specs2"        %% "specs2"             % "2.1.1"           % "test"
+      val specs2 = "org.specs2"        %% "specs2"             % "2.3.11"           % "test"
     }
   }
   
